@@ -1,0 +1,31 @@
+# Vercel functions only run when a request arrives, so this workflow triggers
+# the background work (move-outs, monthly billing, reminders, email/WhatsApp
+# outbox) every 15 minutes. Add two repository secrets to enable it:
+#   CITYHIVE_URL      e.g. https://your-project.vercel.app
+#   JOB_RUNNER_TOKEN  the same 32+ character value set in Vercel
+name: Cityhive scheduled jobs
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: cityhive-scheduled-jobs
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Trigger Cityhive job runner
+        env:
+          CITYHIVE_URL: ${{ secrets.CITYHIVE_URL }}
+          JOB_RUNNER_TOKEN: ${{ secrets.JOB_RUNNER_TOKEN }}
+        run: |
+          if [ -z "$CITYHIVE_URL" ] || [ -z "$JOB_RUNNER_TOKEN" ]; then
+            echo "CITYHIVE_URL or JOB_RUNNER_TOKEN secret is not set; skipping."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error --max-time 300 \
+            -X POST -H "X-Cityhive-Job-Token: $JOB_RUNNER_TOKEN" \
+            "${CITYHIVE_URL%/}/api/internal/jobs/run"

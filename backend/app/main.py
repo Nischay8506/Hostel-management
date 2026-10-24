@@ -6,6 +6,7 @@ import secrets
 from uuid import uuid4
 from io import StringIO, BytesIO
 import logging
+import os
 from pathlib import Path
 from alembic import command
 from alembic.config import Config
@@ -106,6 +107,19 @@ async def database_error(request,exc):
     # Do not expose SQL, parameters, credentials or personal records in errors.
     log.error('Database operation failed (%s)',type(exc).__name__)
     return JSONResponse(status_code=503,content={'detail':'Service temporarily unavailable. Please retry shortly.'})
+
+class VercelClientAddress:
+    """On Vercel, take the caller address from X-Real-IP, which Vercel overwrites
+    to prevent spoofing, so login/OTP rate limits apply per visitor."""
+    def __init__(self,app): self.app=app
+    async def __call__(self,scope,receive,send):
+        if scope['type']=='http':
+            for key,value in scope.get('headers',()):
+                if key==b'x-real-ip' and value.strip():
+                    scope=dict(scope,client=(value.decode('latin-1').split(',')[0].strip(),0)); break
+        await self.app(scope,receive,send)
+if os.environ.get('VERCEL')=='1':
+    app.add_middleware(VercelClientAddress)
 
 @app.middleware('http')
 async def response_security(request,call_next):

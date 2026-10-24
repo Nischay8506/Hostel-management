@@ -1,5 +1,16 @@
 # Cityhive deployment and recovery
 
+## Vercel (one project, frontend + API)
+
+`vercel.json` defines two Vercel Services: `frontend/` (Vite) served at `/` and `backend/` (FastAPI, `app.main:app`) at `/api/*`. The browser calls the API on the same origin, so leave `VITE_API_BASE_URL` unset. Keep the project's Root Directory at the repository root.
+
+1. Database: add Neon Postgres from the project's Storage tab (pick a region close to the function region). The injected `postgres://` `DATABASE_URL` is accepted; the app converts it to the psycopg 3 driver.
+2. Migrate once from a machine with the backend dependencies installed: set `DATABASE_URL`, `JWT_SECRET` and `ADMIN_PASSWORD` in the shell, then run `python -m alembic upgrade head` in `backend/`.
+3. Environment variables (Production): `APP_ENVIRONMENT=production`, `AUTO_MIGRATE=false`, `JOBS_ENABLED=false`, `JWT_SECRET` (32+ random chars), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_PHONE`, `CORS_ORIGINS=["https://<project>.vercel.app"]`, `JOB_RUNNER_TOKEN` (32+ chars), `IDENTITY_DOCUMENT_KEY` (Fernet key), plus the WhatsApp Cloud API or Twilio SMS settings. Sign-in always requires an OTP, so at least one of those must be configured.
+4. Scheduled work: `.github/workflows/scheduled-jobs.yml` calls `/api/internal/jobs/run` every 15 minutes once the `CITYHIVE_URL` and `JOB_RUNNER_TOKEN` repository secrets exist.
+
+Vercel limits function request bodies to 4.5 MB, below the application's 5 MB identity-upload limit.
+
 This repository has separate frontend and backend applications. Publishing the Vite build to Slate does not start FastAPI, PostgreSQL, or the reminder worker. The production backend address has not been identified in this session. Do not substitute the local SQLite file for the production database.
 
 ## Find the existing backend

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, field_validator
 from urllib.parse import urlsplit
 
 class Settings(BaseSettings):
@@ -45,6 +45,17 @@ class Settings(BaseSettings):
     whatsapp_country_code: str = '91'
     whatsapp_request_timeout: float = 8.0
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+
+    @field_validator('database_url', mode='before')
+    @classmethod
+    def use_psycopg_driver(cls, value):
+        # Hosted PostgreSQL (Neon, Supabase, Vercel Marketplace) issues postgres:// or
+        # postgresql:// URLs; SQLAlchemy needs the explicit psycopg 3 driver name.
+        url = str(value or '').strip()
+        for prefix in ('postgres://', 'postgresql://'):
+            if url.startswith(prefix):
+                return 'postgresql+psycopg://' + url[len(prefix):]
+        return url
 
     def validate_runtime(self):
         if self.identity_document_key:
