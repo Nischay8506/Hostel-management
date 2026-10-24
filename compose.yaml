@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hostel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env first}
+      POSTGRES_DB: hostel
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["hostel_db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hostel -d hostel"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  mail:
+    image: axllent/mailpit:v1.24.1
+    ports: ["127.0.0.1:8025:8025", "127.0.0.1:1025:1025"]
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://hostel:${POSTGRES_PASSWORD}@db:5432/hostel
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      ADMIN_PHONE: ${ADMIN_PHONE:-}
+      WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+      WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-cloud}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_BUSINESS_ACCOUNT_ID: ${WHATSAPP_BUSINESS_ACCOUNT_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-}
+      WHATSAPP_AUTH_TEMPLATE_NAME: ${WHATSAPP_AUTH_TEMPLATE_NAME:-}
+      WHATSAPP_REMINDER_TEMPLATE_NAME: ${WHATSAPP_REMINDER_TEMPLATE_NAME:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_REQUEST_TIMEOUT: ${WHATSAPP_REQUEST_TIMEOUT:-8}
+      WHATSAPP_ADMISSION_TEMPLATE_NAME: ${WHATSAPP_ADMISSION_TEMPLATE_NAME:-}
+      SMS_ENABLED: ${SMS_ENABLED:-false}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-}
+      IDENTITY_DOCUMENT_KEY: ${IDENTITY_DOCUMENT_KEY:-}
+      AUTOMATIC_BILLING_ENABLED: ${AUTOMATIC_BILLING_ENABLED:-true}
+      SMTP_HOST: mail
+      SMTP_PORT: 1025
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+  web:
+    build: ./frontend
+    environment:
+      API_PROXY_TARGET: http://api:8000
+    ports: ["127.0.0.1:5173:5173"]
+    depends_on: [api]
+volumes:
+  hostel_db:

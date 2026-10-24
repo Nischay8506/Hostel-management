@@ -1,0 +1,78 @@
+# Persistent local-only workspace. No real WhatsApp/SMS or email delivery.
+name: cityhive-local
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cityhive
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/Start-Local.ps1 first}
+      POSTGRES_DB: cityhive_local
+    volumes: ["local_db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cityhive -d cityhive_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  mail:
+    image: axllent/mailpit:v1.24.1
+    ports: ["127.0.0.1:8025:8025"]
+    restart: unless-stopped
+  api:
+    build: ./backend
+    environment:
+      APP_ENVIRONMENT: local
+      DATABASE_URL: postgresql+psycopg://cityhive:${POSTGRES_PASSWORD}@db:5432/cityhive_local
+      JWT_SECRET: ${JWT_SECRET:?Run scripts/Start-Local.ps1 first}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Run scripts/Start-Local.ps1 first}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Run scripts/Start-Local.ps1 first}
+      ADMIN_PHONE: "9000000001"
+      IDENTITY_DOCUMENT_KEY: ${IDENTITY_DOCUMENT_KEY:?Run scripts/Start-Local.ps1 first}
+      AUTO_MIGRATE: "true"
+      JOBS_ENABLED: "true"
+      AUTOMATIC_BILLING_ENABLED: "true"
+      PERCENTAGE_DISCOUNTS_ENABLED: "true"
+      WHATSAPP_ENABLED: "true"
+      WHATSAPP_PROVIDER: test
+      WHATSAPP_AUTH_TEMPLATE_NAME: local_auth
+      WHATSAPP_REMINDER_TEMPLATE_NAME: local_reminder
+      WHATSAPP_ADMISSION_TEMPLATE_NAME: local_admission
+      SMS_ENABLED: "false"
+      SMTP_HOST: mail
+      SMTP_PORT: "1025"
+      MAIL_FROM: cityhive@local.example
+      CORS_ORIGINS: '["http://127.0.0.1:5179","http://localhost:5179"]'
+      RELEASE_ID: local-workspace
+    command: ["python", "scripts/local_server.py"]
+    ports: ["127.0.0.1:8019:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4)"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+    restart: unless-stopped
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_LOCAL_MODE: "true"
+    ports: ["127.0.0.1:5179:8080"]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+volumes:
+  local_db:

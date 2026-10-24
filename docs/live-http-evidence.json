@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-21T15:32:23.255863+05:30",
+  "method": "read-only HTTP GET, not browser QA",
+  "responses": [
+    {
+      "url": "https://city-hive-jxyilflx.onslate.in/",
+      "status": 200,
+      "content_type": "text/html",
+      "bytes": 870,
+      "sha256": "7227c0a1c3ac420dd62ad44e235a7fc3bfcd35bebe70dcfab2a5cb5a5c64ebc9",
+      "is_json": false
+    },
+    {
+      "url": "https://city-hive-jxyilflx.onslate.in/api/health",
+      "status": 200,
+      "content_type": "text/html",
+      "bytes": 870,
+      "sha256": "7227c0a1c3ac420dd62ad44e235a7fc3bfcd35bebe70dcfab2a5cb5a5c64ebc9",
+      "is_json": false
+    },
+    {
+      "url": "https://city-hive-jxyilflx.onslate.in/api/build",
+      "status": 200,
+      "content_type": "text/html",
+      "bytes": 870,
+      "sha256": "7227c0a1c3ac420dd62ad44e235a7fc3bfcd35bebe70dcfab2a5cb5a5c64ebc9",
+      "is_json": false
+    },
+    {
+      "url": "https://city-hive-jxyilflx.onslate.in/api/branches",
+      "status": 200,
+      "content_type": "text/html",
+      "bytes": 870,
+      "sha256": "7227c0a1c3ac420dd62ad44e235a7fc3bfcd35bebe70dcfab2a5cb5a5c64ebc9",
+      "is_json": false
+    }
+  ]
+}

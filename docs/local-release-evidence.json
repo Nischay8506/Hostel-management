@@ -1,0 +1,96 @@
+{
+  "engine": "sqlite",
+  "tables": {
+    "admission_events": 0,
+    "admissions": 0,
+    "alembic_version": 1,
+    "allocation_events": 0,
+    "auth_audit_events": 0,
+    "branch_admins": 0,
+    "branches": 1,
+    "complaint_events": 0,
+    "complaints": 0,
+    "fee_plans": 0,
+    "final_settlements": 0,
+    "financial_ledger_events": 0,
+    "gate_pass_validation_events": 0,
+    "gate_passes": 0,
+    "identity_review_events": 0,
+    "invoices": 0,
+    "job_state": 0,
+    "notification_preference_events": 0,
+    "otp_challenges": 0,
+    "outbox": 0,
+    "payment_audit_events": 0,
+    "payments": 0,
+    "rate_limit_buckets": 0,
+    "resident_discounts": 0,
+    "residents": 0,
+    "rooms": 0,
+    "settlement_events": 0,
+    "stay_requests": 0,
+    "users": 1
+  },
+  "revision": "0014_release_completion",
+  "integrity": "ok",
+  "foreign_key_violations": 0,
+  "env_files_unchanged": true,
+  "historical_migrations_unchanged": true,
+  "backup": "private backup outside repository",
+  "backup_sha256": "e39084e1705494398f1159792ebf48337553bf295f54846db158125381c9adfe",
+  "frontend_artifacts": {
+    "index-DRAg6XJB.css": "70ec307b8b38d3f71fb03718de546b1465188203a109a32867d692a346c66343",
+    "index-DaXHxuyZ.js": "c84486b46dbb73031a023e27805cb8d4e9e3ea9f4db9a02314610a51d568bb3a"
+  },
+  "http_checks": [
+    {
+      "url": "http://127.0.0.1:8000/api/health",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "status": "ok"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:8000/api/build",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "service": "cityhive-api",
+        "version": "1.1.0",
+        "release": "local"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:8000/api/branches",
+      "status": 200,
+      "content_type": "application/json",
+      "body": []
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/health",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "status": "ok"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/build",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "service": "cityhive-api",
+        "version": "1.1.0",
+        "release": "local"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/branches",
+      "status": 200,
+      "content_type": "application/json",
+      "body": []
+    }
+  ],
+  "brand_assets_unchanged": true
+}

@@ -1,0 +1,41 @@
+# Optional deployment to an existing PostgreSQL service. HTTPS must terminate
+# at your hosting ingress. This stack never creates, resets or migrates the DB.
+name: cityhive-production
+services:
+  api:
+    build: ./backend
+    env_file: ${CITYHIVE_ENV_FILE:?Set the absolute path of your private production env file}
+    environment:
+      APP_ENVIRONMENT: production
+      AUTO_MIGRATE: "false"
+      JOBS_ENABLED: "false"
+      PORT: "8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  worker:
+    build: ./backend
+    env_file: ${CITYHIVE_ENV_FILE:?Set the absolute path of your private production env file}
+    environment:
+      APP_ENVIRONMENT: production
+      AUTO_MIGRATE: "false"
+      JOBS_ENABLED: "false"
+    command: ["python", "-m", "app.worker"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+      args:
+        VITE_API_BASE_URL: /api
+    ports: ["127.0.0.1:8080:8080"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
